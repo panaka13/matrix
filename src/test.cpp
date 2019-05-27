@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <iostream>
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "Matrix.h"
 #include "ThreadPool.h"
@@ -26,7 +26,8 @@ int main() {
   printf("Create matrix c\n");
   Matrix mc = ma + mb;
   Matrix md = ma - mb;
+  Matrix me = ma * mb;
   auto end = std::chrono::system_clock::now();
-  std::chrono::duration<double> elapsed_seconds = end-start;
+  std::chrono::duration<double> elapsed_seconds = end - start;
   cout << elapsed_seconds.count();
 }
