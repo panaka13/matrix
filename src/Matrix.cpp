@@ -105,3 +105,48 @@ void Matrix::_multiply_thread(const Matrix &o, unsigned int start,
       ans.value[row][col] += value[row][i] * o.value[i][col];
   }
 }
+
+Matrix Matrix::Strassen_multiply(Matrix a, Matrix b, int max_recursive) {
+  assert(a.is_square());
+  assert(a.same_dimension(b));
+  if (a.n_rows % 2) return a * b;
+  if (max_recursive <= 0) return a * b;
+  unsigned int half = a.n_rows / 2;
+  Matrix a00 = a.sub_matrix(0, half, 0, half);
+  Matrix a01 = a.sub_matrix(0, half, half, a.n_columns);
+  Matrix a10 = a.sub_matrix(half, a.n_rows, 0, half);
+  Matrix a11 = a.sub_matrix(half, a.n_rows, half, a.n_columns);
+  Matrix b00 = b.sub_matrix(0, half, 0, half);
+  Matrix b01 = b.sub_matrix(0, half, half, b.n_columns);
+  Matrix b10 = b.sub_matrix(half, b.n_rows, 0, half);
+  Matrix b11 = b.sub_matrix(half, b.n_rows, half, b.n_columns);
+  Matrix m0 = Strassen_multiply(a00 + a11, b00 + b11, max_recursive - 1);
+  Matrix m1 = Strassen_multiply(a10 + a11, b00, max_recursive - 1);
+  Matrix m2 = Strassen_multiply(a00, b01 - b11, max_recursive - 1);
+  Matrix m3 = Strassen_multiply(a11, b10 - b00, max_recursive - 1);
+  Matrix m4 = Strassen_multiply(a00 + a01, b11, max_recursive - 1);
+  Matrix m5 = Strassen_multiply(a10 - a00, b00 + b01, max_recursive - 1);
+  Matrix m6 = Strassen_multiply(a01 - a11, b10 + b11, max_recursive - 1);
+  Matrix c00 = m0 + m3 - m4 + m6;
+  Matrix c01 = m2 + m4;
+  Matrix c10 = m1 + m3;
+  Matrix c11 = m0 - m1 + m2 + m5;
+  Matrix ans(a.n_rows, a.n_columns);
+  for (unsigned int i = 0; i < half; i++)
+    for (unsigned int j = 0; j < half; j++) {
+      ans.value[i][j] = c00.value[i][j];
+      ans.value[i + half][j] = c10.value[i][j];
+      ans.value[i][j + half] = c01.value[i][j];
+      ans.value[i + half][j + half] = c11.value[i][j];
+    }
+  return ans;
+}
+
+Matrix Matrix::sub_matrix(unsigned int from_row, unsigned int to_row,
+                          unsigned int from_col, unsigned int to_col) const {
+  Matrix ans(to_row - from_row, to_col - from_col);
+  for (unsigned int i = from_row; i < to_row; i++)
+    for (unsigned int j = from_col; j < to_col; j++)
+      ans.value[i - from_row][j - from_col] = value[i][j];
+  return ans;
+}

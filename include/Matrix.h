@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -13,10 +14,13 @@
 class Matrix {
  public:
   static unsigned int n_threads;
+  static Matrix Strassen_multiply(Matrix, Matrix, int = 0);
 
  private:
   float **value;
   unsigned int n_rows, n_columns;
+
+  bool is_square() const { return n_rows == n_columns; }
 
  public:
   Matrix(unsigned int _n_rows, unsigned int _n_columns)
@@ -70,6 +74,13 @@ class Matrix {
   unsigned int getNRows() const { return n_rows; }
   unsigned int getNColumns() const { return n_columns; }
   float **getValues() const { return value; }
+
+  bool same_dimension(const Matrix &o) const {
+    return n_rows == o.n_rows && n_columns == o.n_columns;
+  }
+
+  Matrix sub_matrix(unsigned int, unsigned int, unsigned int,
+                    unsigned int) const;
 
  private:
   void _add_thread(const Matrix &, unsigned int, unsigned int, Matrix &) const;

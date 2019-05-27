@@ -10,7 +10,18 @@ using namespace std;
 
 unsigned int Matrix::n_threads;
 
-int main() {
+Matrix random_matrix(int n, int m) {
+  srand(time(0));
+  vector<vector<float>> ans;
+  for (int i = 0; i < n; i++) {
+    vector<float> tmp;
+    for (int j = 0; j < m; j++) tmp.push_back(rand() % 10);
+    ans.push_back(tmp);
+  }
+  return Matrix(ans);
+}
+
+void run() {
   srand(time(0));
   cout << "Number of threads: ";
   cin >> Matrix::n_threads;
@@ -19,15 +30,26 @@ int main() {
   cin >> n;
   printf("Init value \n");
   printf("Create matrix a\n");
-  Matrix ma(n, n);
+  Matrix ma = random_matrix(n, n);
   printf("Create matrix b\n");
-  Matrix mb(n, n);
+  Matrix mb = random_matrix(n, n);
   auto start = std::chrono::system_clock::now();
-  printf("Create matrix c\n");
-  Matrix mc = ma + mb;
-  Matrix md = ma - mb;
   Matrix me = ma * mb;
   auto end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-  cout << elapsed_seconds.count();
+  cout << "Multithread: " << elapsed_seconds.count() << endl;
+
+  start = std::chrono::system_clock::now();
+  Matrix mg = Matrix::Strassen_multiply(ma, mb, 1);
+  end = std::chrono::system_clock::now();
+  elapsed_seconds = end - start;
+  cout << "Strassen once: " << elapsed_seconds.count() << endl;
+
+  start = std::chrono::system_clock::now();
+  Matrix mf = Matrix::Strassen_multiply(ma, mb, 100);
+  end = std::chrono::system_clock::now();
+  elapsed_seconds = end - start;
+  cout << "Strassen til can't: " << elapsed_seconds.count() << endl;
 }
+
+int main() { run(); }
