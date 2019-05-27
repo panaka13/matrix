@@ -1,6 +1,6 @@
-#include <thread>
-
 #include "Matrix.h"
+
+#include <thread>
 
 std::ostream &operator<<(std::ostream &os, const Matrix &matrix) {
   for (unsigned int i = 0; i < matrix.n_rows; i++) {

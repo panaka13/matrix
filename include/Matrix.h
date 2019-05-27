@@ -11,20 +11,18 @@
 #include "ThreadPool.h"
 
 class Matrix {
-
-public:
+ public:
   static unsigned int n_threads;
 
-private:
+ private:
   float **value;
   unsigned int n_rows, n_columns;
 
-public:
+ public:
   Matrix(unsigned int _n_rows, unsigned int _n_columns)
       : n_rows(_n_rows), n_columns(_n_columns) {
     value = new float *[n_rows];
-    for (unsigned int i = 0; i < n_rows; i++)
-      value[i] = new float[n_columns];
+    for (unsigned int i = 0; i < n_rows; i++) value[i] = new float[n_columns];
   }
 
   Matrix(const Dimension2D dimension)
@@ -73,7 +71,7 @@ public:
   unsigned int getNColumns() const { return n_columns; }
   float **getValues() const { return value; }
 
-private:
+ private:
   void _add_thread(const Matrix &, unsigned int, unsigned int, Matrix &) const;
   void _subtract_thread(const Matrix &, unsigned int, unsigned int,
                         Matrix &) const;
