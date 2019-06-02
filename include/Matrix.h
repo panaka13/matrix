@@ -74,6 +74,7 @@ class Matrix {
   unsigned int getNRows() const { return n_rows; }
   unsigned int getNColumns() const { return n_columns; }
   float **getValues() const { return value; }
+  void set(unsigned int i, unsigned int j, float x) { value[i][j] = x; }
 
   bool same_dimension(const Matrix &o) const {
     return n_rows == o.n_rows && n_columns == o.n_columns;
@@ -82,10 +83,15 @@ class Matrix {
   Matrix sub_matrix(unsigned int, unsigned int, unsigned int,
                     unsigned int) const;
 
+  float det(int = 0) const;
+
  private:
   void _add_thread(const Matrix &, unsigned int, unsigned int, Matrix &) const;
   void _subtract_thread(const Matrix &, unsigned int, unsigned int,
                         Matrix &) const;
   void _multiply_thread(const Matrix &, unsigned int, unsigned int,
                         Matrix &) const;
+  float _laplace_determinant() const;
+  float _division_free() const;
+
 };

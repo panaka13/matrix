@@ -150,3 +150,12 @@ Matrix Matrix::sub_matrix(unsigned int from_row, unsigned int to_row,
       ans.value[i - from_row][j - from_col] = value[i][j];
   return ans;
 }
+
+float Matrix::det(int option) const {
+  switch (option) {
+    case 0:
+      return _laplace_determinant();
+    default: 
+      throw "Option invalid";
+  }
+}

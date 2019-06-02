@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdio>
 #include <iostream>
 #include <memory>
@@ -52,4 +53,20 @@ void run() {
   cout << "Strassen til can't: " << elapsed_seconds.count() << endl;
 }
 
-int main() { run(); }
+void test_det() {
+  srand(time(0));
+  cout << "Number of threads: ";
+  cin >> Matrix::n_threads;
+  cout << "Size of the matrix: ";
+  int n;
+  cin >> n;
+  printf("Init value \n");
+  printf("Create matrix a\n");
+  Matrix ma = random_matrix(n, n);
+  cout << ma << endl;
+  cout << int(ma.det()) << endl;
+}
+
+int main() {
+  test_det();
+}
