@@ -65,6 +65,7 @@ void test_det() {
   Matrix ma = random_matrix(n, n);
   cout << ma << endl;
   cout << int(ma.det()) << endl;
+  cout << int(ma.det(1)) << endl;
 }
 
 int main() {

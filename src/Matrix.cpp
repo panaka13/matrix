@@ -155,6 +155,8 @@ float Matrix::det(int option) const {
   switch (option) {
     case 0:
       return _laplace_determinant();
+    case 1:
+      return _division_free();
     default: 
       throw "Option invalid";
   }
