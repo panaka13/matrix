@@ -16,7 +16,7 @@ Matrix random_matrix(int n, int m) {
   vector<vector<float>> ans;
   for (int i = 0; i < n; i++) {
     vector<float> tmp;
-    for (int j = 0; j < m; j++) tmp.push_back(rand() % 10);
+    for (int j = 0; j < m; j++) tmp.push_back(rand() % 100);
     ans.push_back(tmp);
   }
   return Matrix(ans);
@@ -55,8 +55,7 @@ void run() {
 
 void test_det() {
   srand(time(0));
-  cout << "Number of threads: ";
-  cin >> Matrix::n_threads;
+  Matrix::n_threads = 0;
   cout << "Size of the matrix: ";
   int n;
   cin >> n;
@@ -64,10 +63,46 @@ void test_det() {
   printf("Create matrix a\n");
   Matrix ma = random_matrix(n, n);
   cout << ma << endl;
-  cout << int(ma.det()) << endl;
-  cout << int(ma.det(1)) << endl;
+  auto start = std::chrono::system_clock::now();
+  printf("%.lf\n", ma.det());
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end - start;
+  cout << "Traditional: " << elapsed_seconds.count() << endl;
+  cout << ma << endl;
+  start = std::chrono::system_clock::now();
+  printf("%.lf\n", ma.det(1));
+  end = std::chrono::system_clock::now();
+  elapsed_seconds = end - start;
+  cout << "Division free: " << elapsed_seconds.count() << endl;
+}
+
+void test_det_small() {
+  Matrix::n_threads = 0;
+  cout << "Size of the matrix: ";
+  int n;
+  cin >> n;
+  vector<vector<float>> a;
+  for (int i = 0; i < n; i++) {
+    vector<float> tmp;
+    for (int j=0; j<i; j++) tmp.push_back(0);
+    for (int j = i; j < n; j++) tmp.push_back(rand() % 10 + 1);
+    a.push_back(tmp);
+  }
+  Matrix ma(a);
+  cout << ma << endl;
+  auto start = std::chrono::system_clock::now();
+  printf("%.lf\n", ma.det());
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_seconds = end - start;
+  cout << "Traditional: " << elapsed_seconds.count() << endl;
+  start = std::chrono::system_clock::now();
+  printf("%.lf\n", ma.det(1));
+  end = std::chrono::system_clock::now();
+  elapsed_seconds = end - start;
+  cout << "Division free: " << elapsed_seconds.count() << endl;
 }
 
 int main() {
   test_det();
 }
+
