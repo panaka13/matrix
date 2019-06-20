@@ -23,6 +23,18 @@ Matrix<int> random_matrix(int n, int m) {
   return Matrix<int>(ans);
 }
 
+template<class T>
+Matrix<T> random_matrix(int n, int m) {
+  srand(time(0));
+  vector<vector<T>> ans;
+  for (int i = 0; i < n; i++) {
+    vector<T> tmp;
+    for (int j = 0; j < m; j++) tmp.push_back(rand() % 10);
+    ans.push_back(tmp);
+  }
+  return Matrix<T>(ans);
+}
+
 void run() {
   srand(time(0));
   cout << "Number of threads: ";
@@ -70,6 +82,16 @@ void test_det() {
   cout << int(ma.det(1)) << endl;
 }
 
+void test_lu() {
+  srand(time(0));
+  Matrix<float> ma = random_matrix<float>(4, 4);
+  cout << ma << endl;
+  auto lu = ma.lu_decomposition();
+  cout << lu.first << endl;
+  cout << lu.second << endl;
+  cout << lu.first * lu.second << endl;
+}
+
 int main() {
-  test_det();
+  test_lu();
 }
