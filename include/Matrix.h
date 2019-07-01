@@ -14,72 +14,76 @@
 
 template<class T = float>
 class Matrix {
- public:
-  static unsigned int n_threads;
-  static Matrix<T> Strassen_multiply(Matrix<T>, Matrix<T>, int = 0);
+  public:
+    static unsigned int n_threads;
+    static Matrix<T> Strassen_multiply(Matrix<T>, Matrix<T>, int = 0);
 
- private:
-  std::vector<std::vector<T>> value;
-  unsigned int n_rows, n_columns;
+  private:
+    std::vector<std::vector<T>> value;
+    unsigned int n_rows, n_columns;
 
-  bool is_square() const { return n_rows == n_columns; }
+    bool is_square() const { return n_rows == n_columns; }
+    bool is_triangular() const;
+    bool is_upper_triangular() const;
+    bool is_lower_triangular() const;
 
- public:
-  Matrix(unsigned int _n_rows, unsigned int _n_columns)
+  public:
+    Matrix(unsigned int _n_rows, unsigned int _n_columns)
       : n_rows(_n_rows), n_columns(_n_columns) {
-    auto tmp = std::vector<T>(n_columns);
-    value = std::vector<std::vector<T>>(n_rows, tmp);
-  }
+        auto tmp = std::vector<T>(n_columns);
+        value = std::vector<std::vector<T>>(n_rows, tmp);
+      }
 
-  Matrix(const Dimension2D dimension)
+    Matrix(const Dimension2D dimension)
       : Matrix(dimension.getRow(), dimension.getColumn()) {}
 
-  Matrix(const Matrix<T> &o) : n_rows(o.n_rows), n_columns(o.n_columns) {
-    value = o.value;
-  }
+    Matrix(const Matrix<T> &o) : n_rows(o.n_rows), n_columns(o.n_columns) {
+      value = o.value;
+    }
 
-  Matrix(const std::vector<std::vector<T>> &_value) {
-    n_rows = _value.size();
-    n_columns = _value[0].size();
-    value = _value;
-  }
+    Matrix(const std::vector<std::vector<T>> &_value) {
+      n_rows = _value.size();
+      n_columns = _value[0].size();
+      value = _value;
+    }
 
-  ~Matrix() {}
+    ~Matrix() {}
 
-  Matrix<T> operator+(const Matrix &) const;
-  Matrix<T> operator-(const Matrix<T> &) const;
-  Matrix<T> operator*(const Matrix<T> &)const;
-  bool operator==(const Matrix<T> &) const;
-  bool operator!=(const Matrix<T> &) const;
+    Matrix<T> operator+(const Matrix &) const;
+    Matrix<T> operator-(const Matrix<T> &) const;
+    Matrix<T> operator*(const Matrix<T> &)const;
+    bool operator==(const Matrix<T> &) const;
+    bool operator!=(const Matrix<T> &) const;
 
-  template<class U>
-  friend std::ostream& operator<< (std::ostream & os, const Matrix<U> &);
+    template<class U>
+      friend std::ostream& operator<< (std::ostream & os, const Matrix<U> &);
 
-  Dimension2D getDimension() const { return Dimension2D({n_rows, n_columns}); }
-  unsigned int getNRows() const { return n_rows; }
-  unsigned int getNColumns() const { return n_columns; }
-  std::vector<std::vector<T>> getValues() const { return value; }
-  void set(unsigned int i, unsigned int j, T x) { value[i][j] = x; }
+    Dimension2D getDimension() const { return Dimension2D({n_rows, n_columns}); }
+    unsigned int getNRows() const { return n_rows; }
+    unsigned int getNColumns() const { return n_columns; }
+    std::vector<std::vector<T>> getValues() const { return value; }
+    void set(unsigned int i, unsigned int j, T x) { value[i][j] = x; }
 
-  bool same_dimension(const Matrix<T> &o) const {
-    return n_rows == o.n_rows && n_columns == o.n_columns;
-  }
+    bool same_dimension(const Matrix<T> &o) const {
+      return n_rows == o.n_rows && n_columns == o.n_columns;
+    }
 
-  Matrix<T> sub_matrix(unsigned int, unsigned int, unsigned int,
-                    unsigned int) const;
+    Matrix<T> sub_matrix(unsigned int, unsigned int, unsigned int,
+        unsigned int) const;
 
-  T det(int = 0) const;
+    T det(int = 0) const;
 
-  std::pair<Matrix, Matrix> lu_decomposition();
+    std::pair<Matrix, Matrix> lu_decomposition() const;
 
- private:
-  void _add_thread(const Matrix<T> &, unsigned int, unsigned int, Matrix<T> &) const;
-  void _subtract_thread(const Matrix<T> &, unsigned int, unsigned int,
-                        Matrix<T> &) const;
-  void _multiply_thread(const Matrix<T> &, unsigned int, unsigned int,
-                        Matrix<T> &) const;
-  T _laplace_determinant() const;
-  T _division_free() const;
+  private:
+    void _add_thread(const Matrix<T> &, unsigned int, unsigned int, Matrix<T> &) const;
+    void _subtract_thread(const Matrix<T> &, unsigned int, unsigned int,
+        Matrix<T> &) const;
+    void _multiply_thread(const Matrix<T> &, unsigned int, unsigned int,
+        Matrix<T> &) const;
+    T _laplace_determinant() const;
+    T _division_free() const;
+    T _det_triangular_matrix() const;
 };
 
 template<class T>
@@ -111,10 +115,10 @@ Matrix<T> Matrix<T>::operator+(const Matrix<T> &o) const {
   unsigned int load_per_thread = total_load / (n_threads + 1);
   for (unsigned int i = 0; i < n_threads; i++) {
     unsigned int load_for_thread =
-        load_per_thread + (i < total_load % (n_threads + 1) ? 1 : 0);
+      load_per_thread + (i < total_load % (n_threads + 1) ? 1 : 0);
     std::thread(&Matrix::_add_thread, *this, std::ref(o), start,
-                start + load_for_thread, std::ref(ans))
-        .join();
+        start + load_for_thread, std::ref(ans))
+      .join();
     start += load_for_thread;
   }
   _add_thread(o, start, total_load, ans);
@@ -132,10 +136,10 @@ Matrix<T> Matrix<T>::operator-(const Matrix<T> &o) const {
   unsigned int load_per_thread = total_load / (n_threads + 1);
   for (unsigned int i = 0; i < n_threads; i++) {
     unsigned int load_for_thread =
-        load_per_thread + (i < total_load % (n_threads + 1) ? 1 : 0);
+      load_per_thread + (i < total_load % (n_threads + 1) ? 1 : 0);
     std::thread(&Matrix::_subtract_thread, *this, std::ref(o), start,
-                start + load_for_thread, std::ref(ans))
-        .join();
+        start + load_for_thread, std::ref(ans))
+      .join();
     start += load_for_thread;
   }
   _subtract_thread(o, start, total_load, ans);
@@ -152,10 +156,10 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T> &o) const {
   unsigned int load_per_thread = total_load / (n_threads + 1);
   for (unsigned int i = 0; i < n_threads; i++) {
     unsigned int load_for_thread =
-        load_per_thread + (i < total_load % (n_threads + 1) ? 1 : 0);
+      load_per_thread + (i < total_load % (n_threads + 1) ? 1 : 0);
     std::thread(&Matrix::_multiply_thread, *this, std::ref(o), start,
-                start + load_for_thread, std::ref(ans))
-        .join();
+        start + load_for_thread, std::ref(ans))
+      .join();
     start += load_for_thread;
   }
   _multiply_thread(o, start, total_load, ans);
@@ -177,7 +181,7 @@ bool Matrix<T>::operator==(const Matrix<T> & o) const {
 
 template<class T>
 void Matrix<T>::_add_thread(const Matrix<T> &o, unsigned int start, unsigned int end,
-                         Matrix<T> &ans) const {
+    Matrix<T> &ans) const {
   for (unsigned int cell = start; cell < end; cell++) {
     unsigned int row = cell / n_columns;
     unsigned int col = cell % n_columns;
@@ -187,7 +191,7 @@ void Matrix<T>::_add_thread(const Matrix<T> &o, unsigned int start, unsigned int
 
 template<class T>
 void Matrix<T>::_subtract_thread(const Matrix<T> &o, unsigned int start,
-                              unsigned int end, Matrix<T> &ans) const {
+    unsigned int end, Matrix<T> &ans) const {
   for (unsigned int cell = start; cell < end; cell++) {
     unsigned int row = cell / n_columns;
     unsigned int col = cell % n_columns;
@@ -197,7 +201,7 @@ void Matrix<T>::_subtract_thread(const Matrix<T> &o, unsigned int start,
 
 template<class T>
 void Matrix<T>::_multiply_thread(const Matrix<T> &o, unsigned int start,
-                              unsigned int end, Matrix<T> &ans) const {
+    unsigned int end, Matrix<T> &ans) const {
   for (unsigned int cell = start; cell < end; cell++) {
     unsigned int row = cell / n_columns;
     unsigned int col = cell % n_columns;
@@ -245,7 +249,7 @@ Matrix<T> Matrix<T>::Strassen_multiply(Matrix<T> a, Matrix<T> b, int max_recursi
 
 template<class T>
 Matrix<T> Matrix<T>::sub_matrix(unsigned int from_row, unsigned int to_row,
-                          unsigned int from_col, unsigned int to_col) const {
+    unsigned int from_col, unsigned int to_col) const {
   Matrix<T> ans(to_row - from_row, to_col - from_col);
   for (unsigned int i = from_row; i < to_row; i++)
     for (unsigned int j = from_col; j < to_col; j++)
@@ -255,11 +259,19 @@ Matrix<T> Matrix<T>::sub_matrix(unsigned int from_row, unsigned int to_row,
 
 template<class T>
 T Matrix<T>::det(int option) const {
+  assert(is_square());
+  if (is_triangular())
+    return _det_triangular_matrix();
   switch (option) {
     case 0:
       return _laplace_determinant();
     case 1:
       return _division_free();
+    case 2: 
+      {
+        auto lu = lu_decomposition();
+        return lu.first.det() * lu.second.det();
+      }
     default: 
       throw "Option invalid";
   }
@@ -308,7 +320,7 @@ T Matrix<T>::_division_free() const {
 }
 
 template<class T>
-std::pair<Matrix<T>, Matrix<T>> Matrix<T>::lu_decomposition() {
+std::pair<Matrix<T>, Matrix<T>> Matrix<T>::lu_decomposition() const {
   assert(is_square());
   unsigned int n = n_rows;
   Matrix<T> l(n, n);
@@ -334,3 +346,36 @@ std::pair<Matrix<T>, Matrix<T>> Matrix<T>::lu_decomposition() {
   return std::make_pair(l, u);
 }
 
+template<class T>
+bool Matrix<T>::is_triangular() const {
+  return is_upper_triangular() || is_lower_triangular();
+}
+
+template<class T>
+bool Matrix<T>::is_upper_triangular() const {
+  assert(is_square());
+  for(unsigned long i=0; i<n_rows; i++)
+    for(unsigned long j=0; j<i; j++) 
+      if (value[i][j] != 0)
+        return false;
+  return true;
+}
+
+template<class T>
+bool Matrix<T>::is_lower_triangular() const {
+  assert(is_square());
+  for(unsigned long i=0; i<n_rows; i++)
+    for(unsigned long j=i+1; j<n_columns; j++) 
+      if (value[i][j] != 0)
+        return false;
+  return true;
+}
+
+template<class T>
+T Matrix<T>::_det_triangular_matrix() const {
+  assert(is_triangular());
+  T det = 1;
+  for(unsigned long i=0; i<n_rows; i++) 
+    det *= value[i][i];
+  return det;
+}

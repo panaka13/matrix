@@ -66,7 +66,7 @@ void run() {
   cout << "Strassen til can't: " << elapsed_seconds.count() << endl;
 }
 
-void test_det() {
+void test_det_division_free() {
   srand(time(0));
   cout << "Number of threads: ";
   cin >> Matrix<int>::n_threads;
@@ -82,6 +82,38 @@ void test_det() {
   cout << int(ma.det(1)) << endl;
 }
 
+void test_det_lu_decomp() {
+  srand(time(0));
+  cout << "Size of the matrix: ";
+  int n;
+  cin >> n;
+  printf("Init value \n");
+  printf("Create matrix a\n");
+  Matrix<float> ma = random_matrix<float>(n, n);
+  cout << ma << endl;
+  auto lu = ma.lu_decomposition();
+  cout << lu.first << endl;
+  cout << lu.second << endl;
+  cout << float(ma.det()) << endl;
+  cout << float(ma.det(2)) << endl;
+}
+
+void custom_test() {
+  vector<vector<float>> a = {
+    {3, 3, 2, 6}, 
+    {0, 0, 0, 2},
+    {6, 3, 8, 1},
+    {7, 0, 0, 3}
+  };
+  Matrix<float> ma(a);
+  cout << ma << endl;
+  auto lu = ma.lu_decomposition();
+  cout << lu.first << endl;
+  cout << lu.second << endl;
+  cout << float(ma.det()) << endl;
+  cout << float(ma.det(2)) << endl;
+}
+
 void test_lu() {
   srand(time(0));
   Matrix<float> ma = random_matrix<float>(4, 4);
@@ -93,5 +125,5 @@ void test_lu() {
 }
 
 int main() {
-  test_lu();
+  custom_test();
 }
