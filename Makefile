@@ -1,2 +1,2 @@
 all:
-	g++ src/* --std=c++11 -I include -pthread -g
+	g++ src/*.cpp --std=c++11 -I include -pthread -g

@@ -1,5 +1,13 @@
 **.out
 bin
 
+# compile and exec
+build
+exec
+
+# CMake 
+CMakeCache.txt
+CMakeFiles
+
 # vim swp file
 **.swp
