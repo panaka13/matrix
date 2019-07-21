@@ -101,16 +101,17 @@ void test_det_lu_decomp() {
 void custom_test() {
   vector<vector<float>> a = {
     {3, 3, 2, 6}, 
-    {0, 0, 0, 2},
+    {2, 0, 0, 2},
     {6, 3, 8, 1},
     {7, 0, 0, 3}
   };
   Matrix<float> ma(a);
   cout << ma << endl;
+  cout << float(ma.det()) << endl;
+  cout << float(ma.det(1)) << endl;
   auto lu = ma.lu_decomposition();
   cout << lu.first << endl;
   cout << lu.second << endl;
-  cout << float(ma.det()) << endl;
   cout << float(ma.det(2)) << endl;
 }
 
@@ -124,6 +125,24 @@ void test_lu() {
   cout << lu.first * lu.second << endl;
 }
 
+void plu_test() {
+  vector<vector<float>> a = {
+    {3, 3, 2, 6}, 
+    {2, 0, 0, 2},
+    {6, 3, 8, 1},
+    {7, 0, 0, 3}
+  };
+  Matrix<float> ma(a);
+  auto plu = ma.plu_decomposition();
+  auto p = plu.at(0);
+  auto l = plu.at(1);
+  auto u = plu.at(2);
+  cout << p << endl;
+  cout << l << endl;
+  cout << u << endl;
+  cout << p*l*u << endl;
+}
+
 int main() {
-  custom_test();
+  plu_test();
 }

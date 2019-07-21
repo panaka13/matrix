@@ -17,6 +17,7 @@ class Matrix {
   public:
     static unsigned int n_threads;
     static Matrix<T> Strassen_multiply(Matrix<T>, Matrix<T>, int = 0);
+    static Matrix<T> identity_matrix(int n);
 
   private:
     std::vector<std::vector<T>> value;
@@ -74,6 +75,7 @@ class Matrix {
     T det(int = 0) const;
 
     std::pair<Matrix, Matrix> lu_decomposition() const;
+    std::vector<Matrix> plu_decomposition() const;
 
   private:
     void _add_thread(const Matrix<T> &, unsigned int, unsigned int, Matrix<T> &) const;
@@ -248,6 +250,14 @@ Matrix<T> Matrix<T>::Strassen_multiply(Matrix<T> a, Matrix<T> b, int max_recursi
 }
 
 template<class T>
+Matrix<T> Matrix<T>::identity_matrix(int n) {
+  Matrix<T> ans(n, n);
+  for(int i=0; i<n; i++) 
+    ans.value[i][i] = 1;
+  return ans;
+}
+
+template<class T>
 Matrix<T> Matrix<T>::sub_matrix(unsigned int from_row, unsigned int to_row,
     unsigned int from_col, unsigned int to_col) const {
   Matrix<T> ans(to_row - from_row, to_col - from_col);
@@ -326,13 +336,12 @@ std::pair<Matrix<T>, Matrix<T>> Matrix<T>::lu_decomposition() const {
   Matrix<T> l(n, n);
   Matrix<T> u(n, n);
   for(unsigned int i=0; i<n; i++) {
-    u.value[i][i] = 1;
     T tmp = 0;
     for(unsigned int j=0; j<i; j++) {
       tmp = 0;
       for(unsigned int k=0; k<j; k++) 
         tmp += l.value[i][k] * u.value[k][j];
-      l.value[i][j] = value[i][j] - tmp;
+      l.value[i][j] = (value[i][j] - tmp) / u.value[j][j];
       tmp = 0;
       for(unsigned int k=0; k<j; k++) 
         tmp += l.value[j][k] * u.value[k][i];
@@ -341,9 +350,48 @@ std::pair<Matrix<T>, Matrix<T>> Matrix<T>::lu_decomposition() const {
     tmp = 0;
     for(unsigned int j=0; j<i; j++) 
       tmp += l.value[i][j] * u.value[j][i];
-    l.value[i][i] = value[i][i] - tmp;
+    l.value[i][i] = 1;
+    u.value[i][i] = (value[i][i] - tmp) / l.value[i][i];
+    // Matrix does not have LU decomposition
+    assert(u.value[i][i] != 0);
   }
   return std::make_pair(l, u);
+}
+
+template<class T>
+std::vector<Matrix<T>> Matrix<T>::plu_decomposition() const {
+  assert(is_square());
+  unsigned int n = n_rows;
+  Matrix<T> l(n, n);
+  Matrix<T> u(*this);
+  std::vector<T> p(n);
+  for(int i=0; i<n; i++)
+    p[i] = i;
+  std::cout << u << std::endl;
+  for(int i=0; i<n; i++) {
+    if (u.value[p[i]][i] == 0) {
+      for(int j=i+1; j<n; j++)
+        if (u.value[p[j]][i] != 0) {
+          std::swap(p[i], p[j]);
+          break;
+        }
+    }
+    std::cout << u << std::endl;
+    assert(u.value[p[i]][i] != 0);
+    std::cout << "pass row " << i << std::endl;
+    for(int j=i+1; j<n; j++) {
+      if (u.value[p[j]][i] == 0)
+        continue;
+      T alpha = u.value[p[j]][i] / u.value[p[i]][i];
+      for(int k=i; k<n; k++) 
+        u.value[p[j]][k] -= u.value[p[i]][k] * alpha;
+      l.value[p[j]][p[i]] = alpha;
+    }
+  }
+  Matrix<T> p_real(n, n);
+  for(int i=0; i<n; i++) 
+    p_real.value[p[i]][i] = 1;
+  return std::vector<Matrix<T>>({p_real, l+Matrix<T>::identity_matrix(n), u});
 }
 
 template<class T>
